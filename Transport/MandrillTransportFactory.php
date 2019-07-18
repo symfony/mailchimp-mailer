@@ -9,9 +9,8 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Mailer\Bridge\Mailchimp\Factory;
+namespace Symfony\Component\Mailer\Bridge\Mailchimp\Transport;
 
-use Symfony\Component\Mailer\Bridge\Mailchimp;
 use Symfony\Component\Mailer\Exception\UnsupportedSchemeException;
 use Symfony\Component\Mailer\Transport\AbstractTransportFactory;
 use Symfony\Component\Mailer\Transport\Dsn;
@@ -28,17 +27,17 @@ final class MandrillTransportFactory extends AbstractTransportFactory
         $user = $this->getUser($dsn);
 
         if ('api' === $scheme) {
-            return new Mailchimp\Http\Api\MandrillTransport($user, $this->client, $this->dispatcher, $this->logger);
+            return new MandrillApiTransport($user, $this->client, $this->dispatcher, $this->logger);
         }
 
         if ('http' === $scheme) {
-            return new Mailchimp\Http\MandrillTransport($user, $this->client, $this->dispatcher, $this->logger);
+            return new MandrillHttpTransport($user, $this->client, $this->dispatcher, $this->logger);
         }
 
         if ('smtp' === $scheme) {
             $password = $this->getPassword($dsn);
 
-            return new Mailchimp\Smtp\MandrillTransport($user, $password, $this->dispatcher, $this->logger);
+            return new MandrillSmtpTransport($user, $password, $this->dispatcher, $this->logger);
         }
 
         throw new UnsupportedSchemeException($dsn, ['api', 'http', 'smtp']);
