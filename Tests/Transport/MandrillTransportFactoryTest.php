@@ -9,10 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Mailer\Bridge\Mailchimp\Tests\Factory;
+namespace Symfony\Component\Mailer\Bridge\Mailchimp\Tests\Transport;
 
-use Symfony\Component\Mailer\Bridge\Mailchimp;
-use Symfony\Component\Mailer\Bridge\Mailchimp\Factory\MandrillTransportFactory;
+use Symfony\Component\Mailer\Bridge\Mailchimp\Transport\MandrillApiTransport;
+use Symfony\Component\Mailer\Bridge\Mailchimp\Transport\MandrillHttpTransport;
+use Symfony\Component\Mailer\Bridge\Mailchimp\Transport\MandrillSmtpTransport;
+use Symfony\Component\Mailer\Bridge\Mailchimp\Transport\MandrillTransportFactory;
 use Symfony\Component\Mailer\Tests\TransportFactoryTestCase;
 use Symfony\Component\Mailer\Transport\Dsn;
 use Symfony\Component\Mailer\Transport\TransportFactoryInterface;
@@ -55,17 +57,17 @@ class MandrillTransportFactoryTest extends TransportFactoryTestCase
 
         yield [
             new Dsn('api', 'mandrill', self::USER),
-            new Mailchimp\Http\Api\MandrillTransport(self::USER, $client, $dispatcher, $logger),
+            new MandrillApiTransport(self::USER, $client, $dispatcher, $logger),
         ];
 
         yield [
             new Dsn('http', 'mandrill', self::USER),
-            new Mailchimp\Http\MandrillTransport(self::USER, $client, $dispatcher, $logger),
+            new MandrillHttpTransport(self::USER, $client, $dispatcher, $logger),
         ];
 
         yield [
             new Dsn('smtp', 'mandrill', self::USER, self::PASSWORD),
-            new Mailchimp\Smtp\MandrillTransport(self::USER, self::PASSWORD, $dispatcher, $logger),
+            new MandrillSmtpTransport(self::USER, self::PASSWORD, $dispatcher, $logger),
         ];
     }
 
