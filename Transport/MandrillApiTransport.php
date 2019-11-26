@@ -49,6 +49,10 @@ class MandrillApiTransport extends AbstractApiTransport
         ]);
 
         $result = $response->toArray(false);
+        if (!isset($result['_id']) && isset($result[0]) && isset($result[0]['_id'])) {
+            $result = $result[0];
+        }
+
         if (200 !== $response->getStatusCode()) {
             if ('error' === ($result['status'] ?? false)) {
                 throw new HttpTransportException(sprintf('Unable to send an email: %s (code %s).', $result['message'], $result['code']), $response);
