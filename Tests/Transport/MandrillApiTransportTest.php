@@ -66,6 +66,21 @@ class MandrillApiTransportTest extends TestCase
         $this->assertEquals('bar', $payload['message']['headers']['foo']);
     }
 
+    public function testSubaccountHeaderIsAddedToPayload()
+    {
+        $email = new Email();
+        $email->getHeaders()->addTextHeader('X-MC-Subaccount', 'foo-bar');
+        $envelope = new Envelope(new Address('alice@system.com'), [new Address('bob@system.com')]);
+
+        $transport = new MandrillApiTransport('ACCESS_KEY');
+        $method = new \ReflectionMethod(MandrillApiTransport::class, 'getPayload');
+        $payload = $method->invoke($transport, $email, $envelope);
+
+        $this->assertArrayHasKey('subaccount', $payload['message']);
+        $this->assertEquals('foo-bar', $payload['message']['subaccount']);
+        $this->assertArrayNotHasKey('headers', $payload['message']);
+    }
+
     public function testSend()
     {
         $client = new MockHttpClient(function (string $method, string $url, array $options): ResponseInterface {
