@@ -86,7 +86,7 @@ final class MailchimpRequestParser extends AbstractRequestParser
             $signedData .= \is_array($value) ? $this->stringifyArray($value) : $value;
         }
 
-        if ($mandrillHeaderSignature !== base64_encode(hash_hmac('sha1', $signedData, $secret, true))) {
+        if (!hash_equals(base64_encode(hash_hmac('sha1', $signedData, $secret, true)), $mandrillHeaderSignature)) {
             throw new RejectWebhookException(400, 'Signature is wrong.');
         }
     }
