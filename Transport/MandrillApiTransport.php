@@ -111,6 +111,9 @@ class MandrillApiTransport extends AbstractApiTransport
             }
 
             if ('inline' === $disposition) {
+                if ($attachment->hasContentId()) {
+                    $att['name'] = $attachment->getContentId();
+                }
                 $payload['message']['images'][] = $att;
             } else {
                 $payload['message']['attachments'][] = $att;

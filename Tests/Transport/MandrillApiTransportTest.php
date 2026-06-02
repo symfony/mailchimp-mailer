@@ -21,6 +21,7 @@ use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class MandrillApiTransportTest extends TestCase
@@ -155,5 +156,53 @@ class MandrillApiTransportTest extends TestCase
         $this->assertArrayNotHasKey('headers', $payload['message']);
         $this->assertArrayHasKey('tags', $payload['message']);
         $this->assertSame(['password-reset', 'user', 'another'], $payload['message']['tags']);
+    }
+
+    public function testInlineImageUsesContentIdAsName()
+    {
+        $imagePart = new DataPart('image-content', 'logo.png', 'image/png');
+        $imagePart->asInline();
+        $cid = $imagePart->getContentId();
+
+        $email = new Email();
+        $email->from('from@example.com')
+            ->to('to@example.com')
+            ->html(\sprintf('<img src="cid:%s">', $cid))
+            ->addPart($imagePart);
+        $envelope = new Envelope(new Address('from@example.com'), [new Address('to@example.com')]);
+
+        $transport = new MandrillApiTransport('ACCESS_KEY');
+        $method = new \ReflectionMethod(MandrillApiTransport::class, 'getPayload');
+        $payload = $method->invoke($transport, $email, $envelope);
+
+        $this->assertArrayHasKey('images', $payload['message']);
+        $this->assertCount(1, $payload['message']['images']);
+        // The HTML references "cid:<content-id>", so Mandrill's image "name" (which it
+        // uses as the Content-ID) must match the part's Content-ID, not the filename.
+        $this->assertNotSame('logo.png', $payload['message']['images'][0]['name']);
+        $this->assertSame($cid, $payload['message']['images'][0]['name']);
+    }
+
+    public function testInlineImageWithoutContentIdKeepsFilenameAsName()
+    {
+        $imagePart = new DataPart('image-content', 'logo.png', 'image/png');
+        $imagePart->asInline();
+
+        $email = new Email();
+        $email->from('from@example.com')
+            ->to('to@example.com')
+            ->html('<img src="cid:logo.png">')
+            ->addPart($imagePart);
+        $envelope = new Envelope(new Address('from@example.com'), [new Address('to@example.com')]);
+
+        $transport = new MandrillApiTransport('ACCESS_KEY');
+        $method = new \ReflectionMethod(MandrillApiTransport::class, 'getPayload');
+        $payload = $method->invoke($transport, $email, $envelope);
+
+        $this->assertArrayHasKey('images', $payload['message']);
+        $this->assertCount(1, $payload['message']['images']);
+        // The HTML references "cid:logo.png" and no Content-ID was set, so the image
+        // "name" must keep matching the filename rather than an auto-generated Content-ID.
+        $this->assertSame('logo.png', $payload['message']['images'][0]['name']);
     }
 }
