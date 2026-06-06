@@ -26,6 +26,9 @@
     "conflict": {
         "symfony/webhook": "<7.4"
     },
+    "conflict": {
+        "symfony/mime": "<6.2"
+    },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Mailer\\Bridge\\Mailchimp\\": "" },
         "exclude-from-classmap": [
